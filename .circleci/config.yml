@@ -1,0 +1,53 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build-and-test:
+    docker:
+      # specify the version you desire here
+      - image: circleci/node:8.12.0
+
+    working_directory: ~/docker-react-app
+
+    steps:
+      - checkout
+
+      # Build image
+      - run: docker build -t tosmak/docker-react-app -f Dockerfile.dev .
+
+      # run tests!
+      - run: docker run -e CI=true tosmak/docker-react-app npm run test
+
+  deploy:
+    docker:
+      - image: circleci/node:8.12.0
+    steps:
+      - checkout
+      - run:
+          name: Installing deployment dependencies
+          working_directory: /
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get install python-pip python-dev build-essential
+            sudo pip install --upgrade setuptools
+            sudo pip install awsebcli --upgrade
+
+      - run:
+          name: Deploying
+          command: eb deploy $CIRCLE_BRANCH-docker-react-app
+
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build-and-test
+      - deploy:
+          requires:
+            - build-and-test
+          filters:
+            branches:
+              only:
+                - master
