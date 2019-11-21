@@ -1,6 +1,6 @@
 branch-defaults:
   master:
-    environment: $CIRCLE_BRANCH-docker-react-app
+    environment: DockerReactApp-env
     group_suffix: null
 global:
   application_name: docker-react-app
